@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: user
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hotel-infra
+    username: postgres
+    password: admin123
+    jpa:
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+
+
+#eureka client setup
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+    register-with-eureka: true
+    fetch-registry: true
+
+  instance:
+    hostname: localhost
+    instance-id: localhost:${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+
+#jwt
+jwt:
+  secret: 5gJgshc4x1H9OHje7nTS1AtDCpNowe93OdYbr7YPg1u
+  expiration: 86400000
+
+server:
+  port: 8081
