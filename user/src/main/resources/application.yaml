@@ -28,10 +28,5 @@ eureka:
     lease-expiration-duration-in-seconds: 90
 
 
-#jwt
-jwt:
-  secret: 5gJgshc4x1H9OHje7nTS1AtDCpNowe93OdYbr7YPg1u
-  expiration: 86400000
-
 server:
   port: 8081
