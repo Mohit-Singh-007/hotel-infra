@@ -9,6 +9,12 @@ spring:
             predicates:
             - Path=/users/**
 
+
+          - id: hotel-service
+            uri: lb://HOTEL
+            predicates:
+              - Path=/hotels/**
+
 eureka:
   client:
     serviceUrl:
