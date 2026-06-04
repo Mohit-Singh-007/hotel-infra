@@ -1,3 +1,33 @@
 spring:
   application:
     name: gateway
+  cloud:
+    gateway:
+        routes:
+          - id: user-service
+            uri: lb://USER
+            predicates:
+            - Path=/users/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+    register-with-eureka: true
+    fetch-registry: true
+
+  instance:
+    hostname: localhost
+    instance-id: localhost:${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
