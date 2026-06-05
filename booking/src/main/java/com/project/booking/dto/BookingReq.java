@@ -6,10 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record BookingReq(
-     @NotNull @NotBlank Long userId,
-     @NotNull @NotBlank  Long hotelId,
-     @NotNull @NotBlank  Long roomId,
-     @NotNull @NotBlank  LocalDate checkIn,
-     @NotNull @NotBlank  LocalDate checkOut
+     @NotNull  Long userId,
+     @NotNull   Long hotelId,
+     @NotNull   Long roomId,
+     @NotNull   LocalDate checkIn,
+     @NotNull   LocalDate checkOut
 ) {
 }

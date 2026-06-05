@@ -2,15 +2,14 @@ package com.project.booking.sync;
 
 import com.project.booking.dto.AvailabilityRes;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "hotel-service" , path = "/hotels")
+@FeignClient(name = "HOTEL" , path = "/hotels")
 public interface HotelClient {
 
     @GetMapping("/rooms/{roomId}/availability")
-    AvailabilityRes checkAvailability(Long roomId);
+    AvailabilityRes checkAvailability(@PathVariable Long roomId);
 
     @PutMapping("/rooms/{roomId}/availability")
-    void updateAvailability(Long roomId, boolean available);
+    void updateAvailability(@PathVariable Long roomId,@RequestParam boolean available);
 }
