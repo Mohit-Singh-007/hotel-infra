@@ -11,6 +11,19 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: # leave empty for local, set in prod
+      timeout: 2000           # connection timeout in ms
+      lettuce:
+          pool:
+            max-active: 10      # max connections in pool
+            max-idle: 5         # max idle connections
+            min-idle: 2         # min idle connections
+            max-wait: 1000      # max wait for connection in ms
+
 
 #eureka client setup
 eureka:
