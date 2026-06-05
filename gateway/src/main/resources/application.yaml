@@ -15,6 +15,11 @@ spring:
             predicates:
               - Path=/hotels/**
 
+          - id: booking-service
+            uri: lb://BOOKING
+            predicates:
+              - Path=/bookings/**
+
 eureka:
   client:
     serviceUrl:
@@ -32,8 +37,3 @@ eureka:
 
 server:
   port: 8080
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty: DEBUG
