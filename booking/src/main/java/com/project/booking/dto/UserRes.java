@@ -1,4 +1,4 @@
-package com.project.user.dto;
+package com.project.booking.dto;
 
 public record UserRes(
         Long id,

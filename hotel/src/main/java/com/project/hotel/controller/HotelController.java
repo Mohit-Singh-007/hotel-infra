@@ -44,4 +44,13 @@ public class HotelController {
     public ResponseEntity<AvailabilityRes> checkAvailability(@PathVariable Long roomId) {
         return ResponseEntity.ok(roomService.checkAvailability(roomId));
     }
+
+    @PutMapping("/rooms/{roomId}/availability")
+    public ResponseEntity<Void> updateAvailability(
+            @PathVariable Long roomId,
+            @RequestParam boolean available
+    ) {
+        roomService.updateAvailability(roomId, available);
+        return ResponseEntity.ok().build();
+    }
 }
