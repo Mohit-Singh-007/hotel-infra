@@ -2,6 +2,7 @@ package com.project.user.services;
 
 import com.project.user.dto.UserReq;
 import com.project.user.dto.UserRes;
+import com.project.user.exceptions.custom.ResourceNotFoundException;
 import com.project.user.model.Role;
 import com.project.user.model.User;
 import com.project.user.repo.UserRepo;
@@ -30,7 +31,7 @@ public class UserService implements UserImpl {
     @Override
     public UserRes getUserById(Long id) {
         User user = userRepo.findById(id)
-                .orElseThrow(()-> new RuntimeException("User not found..."));
+                .orElseThrow(()-> new ResourceNotFoundException("User not found..."));
 
         return mapToUserRes(user);
     }
@@ -38,7 +39,7 @@ public class UserService implements UserImpl {
     @Override
     public UserRes getUserByEmail(String email) {
        User user = userRepo.findByEmail(email)
-               .orElseThrow(() -> new RuntimeException("User not found...."));
+               .orElseThrow(() -> new ResourceNotFoundException("User not found...."));
 
        return mapToUserRes(user);
     }

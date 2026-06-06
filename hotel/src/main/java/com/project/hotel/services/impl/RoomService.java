@@ -3,6 +3,7 @@ package com.project.hotel.services.impl;
 import com.project.hotel.dto.AvailabilityRes;
 import com.project.hotel.dto.RoomReq;
 import com.project.hotel.dto.RoomRes;
+import com.project.hotel.exceptions.custom.ResourceNotFoundException;
 import com.project.hotel.models.Hotel;
 import com.project.hotel.models.Rooms;
 import com.project.hotel.repo.HotelRepo;
@@ -32,7 +33,7 @@ public class RoomService implements RoomServiceImpl {
     public RoomRes createRoom(RoomReq req) {
 
         Hotel hotel = hotelRepo.findById(req.hotelId())
-                .orElseThrow(()->new RuntimeException("Hotel not found with id: "+req.hotelId()));
+                .orElseThrow(()->new ResourceNotFoundException("Hotel not found with id: "+req.hotelId()));
 
         Rooms room = Rooms.builder()
                 .hotel(hotel)
@@ -54,7 +55,7 @@ public class RoomService implements RoomServiceImpl {
     public AvailabilityRes checkAvailability(Long roomId) {
         log.info("CACHE MISS - hitting DB for room {}",roomId);
         Rooms room = roomRepo.findById(roomId)
-                .orElseThrow(()-> new RuntimeException("Room not found..."));
+                .orElseThrow(()-> new ResourceNotFoundException("Room not found..."));
 
         return new AvailabilityRes(
                 room.getId(),
@@ -72,7 +73,7 @@ public class RoomService implements RoomServiceImpl {
     public void updateAvailability(Long roomId, boolean available) {
 
         Rooms room = roomRepo.findById(roomId)
-                .orElseThrow(()-> new RuntimeException("Room not found..."));
+                .orElseThrow(()-> new ResourceNotFoundException("Room not found..."));
 
         room.setAvailable(available);
         roomRepo.save(room);

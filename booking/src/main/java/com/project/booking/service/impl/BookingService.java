@@ -1,6 +1,8 @@
 package com.project.booking.service.impl;
 
 import com.project.booking.dto.*;
+import com.project.booking.exceptions.custom.ConflictException;
+import com.project.booking.exceptions.custom.ResourceNotFoundException;
 import com.project.booking.kafka.BookingProducer;
 import com.project.booking.models.Booking;
 import com.project.booking.models.BookingStatus;
@@ -42,13 +44,13 @@ public class BookingService implements BookingServiceImpl {
 
         AvailabilityRes availability = hotelClient.checkAvailability(req.roomId());
         if(!availability.available()){
-            throw new RuntimeException("Room is not available...");
+            throw new ConflictException("Room is not available...");
         }
         log.info("Room {} is available", req.roomId());
 
         long nights = ChronoUnit.DAYS.between(req.checkIn(),req.checkOut());
         if(nights <= 0){
-            throw new RuntimeException("Check out must be after check in");
+            throw new IllegalArgumentException("Check out must be after check in");
         }
 
         double price = nights * availability.pricePerNight();
@@ -82,7 +84,7 @@ public class BookingService implements BookingServiceImpl {
     @Override
     public BookingRes getBookingById(Long id) {
         Booking booking = bookingRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
         return mapToRes(booking);
     }
 
@@ -103,10 +105,10 @@ public class BookingService implements BookingServiceImpl {
         * publish -> booking.cancelled
         * */
         Booking booking = bookingRepo.findById(id)
-                .orElseThrow(()->new RuntimeException("Booking not found"));
+                .orElseThrow(()->new ResourceNotFoundException("Booking not found"));
 
         if(booking.getStatus()== BookingStatus.CANCELLED){
-            throw new RuntimeException("Booking already cancelled...");
+            throw new ConflictException("Booking already cancelled...");
         }
 
         hotelClient.updateAvailability(booking.getRoomId(),true);

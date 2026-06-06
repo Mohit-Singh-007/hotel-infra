@@ -2,6 +2,7 @@ package com.project.hotel.services.impl;
 
 import com.project.hotel.dto.HotelReq;
 import com.project.hotel.dto.HotelRes;
+import com.project.hotel.exceptions.custom.ResourceNotFoundException;
 import com.project.hotel.models.Hotel;
 import com.project.hotel.repo.HotelRepo;
 import com.project.hotel.services.HotelServiceImpl;
@@ -31,7 +32,7 @@ public class HotelService implements HotelServiceImpl {
     @Override
     public HotelRes getHotelById(Long hotelId) {
         Hotel hotel = hotelRepo.findById(hotelId)
-                .orElseThrow(()->new RuntimeException("Hotel not found with id: "+hotelId));
+                .orElseThrow(()->new ResourceNotFoundException("Hotel not found with id: "+hotelId));
 
         return mapToHotelRes(hotel);
     }
