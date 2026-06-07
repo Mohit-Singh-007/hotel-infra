@@ -3,7 +3,8 @@ package com.project.booking.service.impl;
 import com.project.booking.dto.*;
 import com.project.booking.exceptions.custom.ConflictException;
 import com.project.booking.exceptions.custom.ResourceNotFoundException;
-import com.project.booking.kafka.BookingProducer;
+import com.project.booking.kafka.records.BookingCancelledEvent;
+import com.project.booking.kafka.records.BookingConfirmedEvent;
 import com.project.booking.models.Booking;
 import com.project.booking.models.BookingStatus;
 import com.project.booking.repo.BookingRepo;
@@ -12,7 +13,9 @@ import com.project.booking.sync.HotelClient;
 import com.project.booking.sync.UserClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -26,9 +29,10 @@ public class BookingService implements BookingServiceImpl {
     private final BookingRepo bookingRepo;
     private final UserClient userClient;
     private final HotelClient hotelClient;
-    private final BookingProducer bookingProducer;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public BookingRes createBooking(BookingReq req) {
         /*
         * validate user -> check if room available [feign] -> if false return[not available]
@@ -68,7 +72,6 @@ public class BookingService implements BookingServiceImpl {
         Booking saved = bookingRepo.save(booking);
         log.info("Booking created with id {}", saved.getId());
 
-        bookingProducer.publishBookingCreated(mapToEvent(saved));
 
         hotelClient.updateAvailability(req.roomId(), false);
 
@@ -76,7 +79,9 @@ public class BookingService implements BookingServiceImpl {
         saved.setUpdatedAt(LocalDateTime.now());
         bookingRepo.save(saved);
 
-        bookingProducer.publishBookingConfirmed(mapToEvent(saved));
+        // publish event after db - transaction is done [keeping it simple for now]
+    //    bookingProducer.publishBookingCreated(mapToEvent(saved));
+       eventPublisher.publishEvent(new BookingConfirmedEvent(saved));
 
         return mapToRes(saved);
     }
@@ -97,6 +102,7 @@ public class BookingService implements BookingServiceImpl {
     }
 
     @Override
+    @Transactional
     public BookingRes cancelBooking(Long id) {
         /*
         * find krunga booking -> if status==cancelled return
@@ -116,8 +122,7 @@ public class BookingService implements BookingServiceImpl {
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepo.save(booking);
 
-        bookingProducer.publishBookingCancelled(mapToEvent(booking));
-
+       eventPublisher.publishEvent(new BookingCancelledEvent(booking));
         return mapToRes(booking);
     }
 
