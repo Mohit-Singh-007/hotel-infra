@@ -1,9 +1,9 @@
 package com.project.booking.exceptions;
 
-import com.project.user.exceptions.ApiError;
-import com.project.user.exceptions.custom.ConflictException;
-import com.project.user.exceptions.custom.ResourceNotFoundException;
-import com.project.user.exceptions.custom.ServiceUnavailableException;
+
+import com.project.booking.exceptions.custom.ConflictException;
+import com.project.booking.exceptions.custom.ResourceNotFoundException;
+import com.project.booking.exceptions.custom.ServiceUnavailableException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
