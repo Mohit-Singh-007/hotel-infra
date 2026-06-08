@@ -2,6 +2,7 @@ package com.project.booking.controller;
 
 import com.project.booking.dto.BookingReq;
 import com.project.booking.dto.BookingRes;
+import com.project.booking.exceptions.custom.ConflictException;
 import com.project.booking.idempotency.IdempotencyService;
 import com.project.booking.service.impl.BookingService;
 import jakarta.validation.Valid;
@@ -39,10 +40,22 @@ public class BookingController {
             return ResponseEntity.ok(existing.get());
         }
 
+        // try to acquire lock
+        if(!idempotencyService.acquireLock(idempotencyKey)){
+            throw new ConflictException("Request with this Idempotency-Key is already being processed");
+        }
+
+        try {
         // process and cache it
         BookingRes res = bookingService.createBooking(req);
         idempotencyService.saveResult(idempotencyKey,res);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        }catch (Exception e){
+            // release lock in case of failure for retry
+            idempotencyService.deleteLock(idempotencyKey);
+            throw e;
+        }
+
 
     }
 
