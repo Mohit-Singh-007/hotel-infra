@@ -2,7 +2,6 @@ package com.project.notification.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.notification.dto.BookingEvent;
-import com.project.notification.dto.BookingStatus;
 import com.project.notification.models.NotificationLogs;
 import com.project.notification.repo.NotificationRepo;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +25,24 @@ public class BookingConsumer {
 
 
     @KafkaListener(topics = KafkaTopics.BOOKING_CONFIRMED,groupId = "notification-group")
-    public void onBookingConfirmed(BookingEvent event){
-        log.info("[NOTIFICATION] Booking confirmed — bookingId={} userId={}", event.bookingId(), event.userId());
-        saveLog(event,KafkaTopics.BOOKING_CONFIRMED, "Your booking " + event.bookingId() + " is confirmed! Total: " + event.totalPrice());
+    public void onBookingConfirmed(String msg) {
+
+        try {
+            BookingEvent event = objectMapper.readValue(msg, BookingEvent.class);
+
+            if(repo.existsByBookingIdAndType(event.bookingId(),"BOOKING_CONFIRMED")){
+                log.warn("Duplicate event ignored: bookingId={}", event.bookingId());
+                return;
+            }
+
+            log.info("[NOTIFICATION] Booking confirmed — bookingId={} userId={}", event.bookingId(), event.userId());
+            saveLog(event, KafkaTopics.BOOKING_CONFIRMED, "Your booking " + event.bookingId() + " is confirmed! Total: " + event.totalPrice());
+
+
+        }catch (Exception e){
+            log.error("Failed to process booking confirmed event: {}", e.getMessage());
+            throw new RuntimeException(e); // rethrow so DefaultErrorHandler retries
+        }
     }
 
     @KafkaListener(topics = KafkaTopics.BOOKING_CANCELLED, groupId = "notification-group")

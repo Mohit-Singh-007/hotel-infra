@@ -1,6 +1,5 @@
 package com.project.booking.kafka;
 
-import com.project.booking.dto.BookingEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,23 +16,15 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class BookingProducer {
-    private final KafkaTemplate<String, BookingEvent> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void publishBookingCreated(BookingEvent event){
-        publish(KafkaConfig.BOOKING_CREATED,event);
-    }
-    public void publishBookingCancelled(BookingEvent event){
-        publish(KafkaConfig.BOOKING_CANCELLED,event);
-    }
-    public void publishBookingConfirmed(BookingEvent event){
-        publish(KafkaConfig.BOOKING_CONFIRMED,event);
-    }
 
-    private void publish(String topic, BookingEvent event){
-        kafkaTemplate.send(topic,event.bookingId().toString(),event)
+    private void publish(String topic, String aggId,String payload){
+        kafkaTemplate.send(topic,aggId,payload)
                 .whenComplete((res,ex) ->{
                     if(ex != null){
                         log.error("Failed to publish to topic {}: {}", topic, ex.getMessage());
+                        throw new RuntimeException("Kafka publish failed ",ex); // so Outbox relay knows about failure
                     }else{
                         log.info("Published to topic {} partition {} offset {}",
                                 topic,

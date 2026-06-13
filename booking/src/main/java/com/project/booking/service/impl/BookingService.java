@@ -1,13 +1,17 @@
 package com.project.booking.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.booking.dto.*;
 import com.project.booking.exceptions.custom.ConflictException;
 import com.project.booking.exceptions.custom.ResourceNotFoundException;
-import com.project.booking.kafka.records.BookingCancelledEvent;
-import com.project.booking.kafka.records.BookingConfirmedEvent;
+import com.project.booking.kafka.KafkaConfig;
 import com.project.booking.models.Booking;
 import com.project.booking.models.BookingStatus;
+import com.project.booking.models.OutboxEvent;
+import com.project.booking.models.OutboxStatus;
 import com.project.booking.repo.BookingRepo;
+import com.project.booking.repo.OutboxRepo;
 import com.project.booking.service.BookingServiceImpl;
 import com.project.booking.sync.HotelClient;
 import com.project.booking.sync.UserClient;
@@ -27,9 +31,11 @@ import java.util.List;
 public class BookingService implements BookingServiceImpl {
 
     private final BookingRepo bookingRepo;
+    private final OutboxRepo outboxRepo;
     private final UserClient userClient;
     private final HotelClient hotelClient;
     private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -81,7 +87,15 @@ public class BookingService implements BookingServiceImpl {
 
         // publish event after db - transaction is done [keeping it simple for now]
     //    bookingProducer.publishBookingCreated(mapToEvent(saved));
-       eventPublisher.publishEvent(new BookingConfirmedEvent(saved));
+//       eventPublisher.publishEvent(new BookingConfirmedEvent(saved));
+
+        // save event to OutboxEvent-model
+        saveToOutboxEvent(
+                KafkaConfig.BOOKING_CONFIRMED,
+                saved.getId().toString(),
+                "BOOKING",
+                mapToEvent(saved)
+        );
 
         return mapToRes(saved);
     }
@@ -122,8 +136,31 @@ public class BookingService implements BookingServiceImpl {
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepo.save(booking);
 
-       eventPublisher.publishEvent(new BookingCancelledEvent(booking));
+//       eventPublisher.publishEvent(new BookingCancelledEvent(booking));
+        saveToOutboxEvent(
+                KafkaConfig.BOOKING_CANCELLED,
+                booking.getId().toString(),
+                "BOOKING",
+                mapToEvent(booking)
+        );
         return mapToRes(booking);
+    }
+
+    public void saveToOutboxEvent(String topic,String aggId,String aggType,BookingEvent event) {
+
+        try{
+            OutboxEvent outbox = OutboxEvent.builder()
+                    .topic(topic)
+                    .aggregateId(aggId)
+                    .aggregateType(aggType)
+                    .payload(objectMapper.writeValueAsString(event))
+                    .status(OutboxStatus.PENDING)
+                    .retryCount(0)
+                    .build();
+            outboxRepo.save(outbox);
+        }catch (JsonProcessingException e){
+            throw new IllegalArgumentException("Failed to serialize outbox event");
+        }
     }
 
 
