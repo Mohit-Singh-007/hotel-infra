@@ -33,8 +33,7 @@ public class OutboxRelay {
             try{
                 kafkaTemplate.send(
                         e.getTopic(),
-                        Integer.valueOf(e.getAggregateId()),
-                        e.getAggregateType(),
+                       e.getAggregateId(),
                         e.getPayload()
                 ).get(); // blocking -> waits for ack
 

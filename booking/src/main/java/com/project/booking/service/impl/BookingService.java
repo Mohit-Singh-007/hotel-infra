@@ -109,7 +109,7 @@ public class BookingService implements BookingServiceImpl {
 
     @Override
     public List<BookingRes> getBookingByUserId(Long userId) {
-        return bookingRepo.findById(userId)
+        return bookingRepo.findByUserId(userId)
                 .stream()
                 .map(this::mapToRes)
                 .toList();
@@ -134,14 +134,14 @@ public class BookingService implements BookingServiceImpl {
         hotelClient.updateAvailability(booking.getRoomId(),true);
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setUpdatedAt(LocalDateTime.now());
-        bookingRepo.save(booking);
+        Booking saved = bookingRepo.save(booking);
 
 //       eventPublisher.publishEvent(new BookingCancelledEvent(booking));
         saveToOutboxEvent(
                 KafkaConfig.BOOKING_CANCELLED,
-                booking.getId().toString(),
+                saved.getId().toString(),
                 "BOOKING",
-                mapToEvent(booking)
+                mapToEvent(saved)
         );
         return mapToRes(booking);
     }
