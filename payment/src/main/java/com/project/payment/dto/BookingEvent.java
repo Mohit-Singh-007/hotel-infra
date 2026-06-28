@@ -1,6 +1,6 @@
-package com.project.booking.dto;
+package com.project.payment.dto;
 
-import com.project.booking.models.BookingStatus;
+import com.project.payment.dto.utils.BookingStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
